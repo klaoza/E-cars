@@ -7,23 +7,7 @@
 #define BLACKLIST_FILE "blacklist_clientstxt"
 #define TARIFS_FILE "tarifs.txt"
 
-char matricule[20];
-char modele[50];
-char etat[20];
-char assurance[20];
-int kilometrage;
-int annee;
-double tarif_journalier;
-double caution;
-int idLoc = 1;
-char date_debut[20];
-char date_fin[20];
-char cin_client[20];
-int duree;
-double montant;
-int paiement_effectue;
-double acompte;
-char raison[100];
+int idLoc=1;
 // Fonction pour lire une date depuis l'entrée
 void lireDate(char date[]) {
     while (1) {
@@ -565,10 +549,25 @@ int nombreLocationsParVoiture(char matriculeRecherche[]) {
 
 
 void sauvegarderInformationsDansFichier() {
-FILE* fichierParc = fopen(VOITURES_PARC_FILE, "w");
-FILE* fichierLocations = fopen(LOCATIONS_FILE, "w");
-FILE* fichierBlacklist = fopen(BLACKLIST_FILE, "w");
-
+    char matricule[20];
+char modele[50];
+char etat[20];
+char assurance[20];
+int kilometrage;
+int annee;
+double tarif_journalier;
+double caution;
+char date_debut[20];
+char date_fin[20];
+char cin_client[20];
+int duree;
+double montant;
+int paiement_effectue;
+double acompte;
+char raison[100];
+    FILE* fichierParc = fopen("parc_auto.txt", "w");
+    FILE* fichierLocations = fopen("historique_locations.txt", "w");
+    FILE* fichierBlacklist = fopen("blacklist_clients.txt", "w");
 
     if (fichierParc == NULL || fichierLocations == NULL || fichierBlacklist == NULL) {
         perror("Erreur lors de l'ouverture des fichiers de sauvegarde");
@@ -602,7 +601,7 @@ FILE* fichierBlacklist = fopen(BLACKLIST_FILE, "w");
     fclose(fichierBlacklist);
 };
 struct voiture* trouverVoitureParMatricule(char* matricule) {
-    struct voiture* voitureActuelle = system;
+    struct voiture* voitureActuelle = parcAuto;
 
     while (voitureActuelle != NULL) {
         if (strcmp(voitureActuelle->matricule, matricule) == 0) {
@@ -671,7 +670,7 @@ void afficherMenu() {
 };
 void afficherdescription(char *matricule) {
 
-    struct voiture* voit = system;
+    struct voiture* voit = parcAuto;
 
     voit = trouverVoitureParMatricule(matricule);
 
