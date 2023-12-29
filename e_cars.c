@@ -20,6 +20,7 @@ char date_debut[20];
 char date_fin[20];
 char cin_client[20];
 int duree;
+double montant;
 int paiement_effectue;
 float acompte;
 char raison[100];
@@ -148,8 +149,10 @@ void supprimerVoiturePanne() {
 
     while (voitureActuelle != NULL) {
         if (strcmp(voitureActuelle->etat, "panne") == 0) {
+            // La voiture est en panne, la supprimer du parc
             if (voiturePrecedente == NULL) {
-               parcAuto = voitureActuelle->suivante;
+                // La voiture en panne est la première dans la liste
+                parcAuto = voitureActuelle->suivante;
                 free(voitureActuelle);
                 printf("Voiture en panne supprimee avec succes.\n");
                 return;
@@ -176,6 +179,7 @@ void modifierDescriptionEtat() {
 
     while (voitureActuelle != NULL) {
         if (strcmp(voitureActuelle->matricule, mat) == 0) {
+            // La voiture est trouvée, modifier la description et l'état
             printf("Nouvelle description : ");
             scanf("%s", voitureActuelle->matricule);
             printf("Nouvel etat (disponible, louee, panne) : ");
@@ -206,6 +210,7 @@ int estVoitureDisponible(struct voiture* voiture, char date_debut[], char date_f
     struct location* locationActuelle = historiqueLocations;
 
     while (locationActuelle != NULL) {
+        // Vérifier s'il y a un chevauchement de dates avec la location actuelle
         if (strcmp(locationActuelle->voiture->matricule, voiture->matricule) == 0) {
             if ((strcmp(locationActuelle->date_fin, date_debut) >= 0) || (strcmp(locationActuelle->date_debut, date_fin) <= 0)) {
                 return 0; // Non disponible
@@ -269,6 +274,7 @@ void louerVoiture() {
     int duree;
     float acompte;
 
+    // Demander à l'utilisateur le modèle de la voiture à louer
     printf("Entrez la matricule de la voiture à louer : ");
     scanf("%s", mat);
 
@@ -289,11 +295,14 @@ void louerVoiture() {
             printf("Entrez la date de fin de la location (JJ/MM/AAAA) : ");
             scanf("%s", datefin);
 
+            // Calculate the duration of the rental
             duree = calculerDuree(datedeb, datefin);
 
+            // Calculate the total amount of the rental
             float montant = duree * voitureActuelle->tarif_journalier;
             printf("Votre montant : %f \n", montant);
 
+            // Demander l'acompte à l'utilisateur
             printf("Entrez le montant de l'acompte : ");
             scanf("%f", &acompte);
 
@@ -322,8 +331,31 @@ void louerVoiture() {
         voitureActuelle = voitureActuelle->suivante;
     }
 
+    // Si la voiture n'est pas trouvée dans le parc
     printf("La voiture n'est pas disponible dans le parc.\n");
-}
+};
+void afficherdescription() {
+    struct voiture* voit = parcAuto;
+
+    if (voit == NULL) {
+        printf("Le parc automobile est vide.\n");
+    } else {
+        printf("Contenu du parc automobile :\n");
+        while (voit != NULL) {
+            printf("Matricule: %s\n", voit->matricule);
+            printf("- Modèle: %s\n", voit->modele);
+            printf("- Kilomètres parcourus: %.2f\n", voit->kilometrage);
+            printf("- Assurance: %s\n", voit->assurance);
+            printf("- État: %s\n", voit->etat);
+            printf("- Année: %d\n", voit->annee);
+            printf("- Caution: %.2f\n", voit->caution);
+            printf("- Tarif journalier: %.2f\n", voit->tarif_journalier);
+            printf("\n");
+
+            voit = voit->suivante;
+        }
+    }
+};
 void retourVoitureReclamation() {
     char mat[10];
     printf("Entrez la matricule de la voiture a retourner suite a une reclamation : ");
@@ -333,6 +365,7 @@ void retourVoitureReclamation() {
 
     while (voitureActuelle != NULL) {
         if (strcmp(voitureActuelle->matricule, mat) == 0) {
+            // La voiture est trouvée, mettre à jour son état
             strcpy(voitureActuelle->etat, "disponible");
             printf("La voiture a ete retournee avec succes suite a une reclamation.\n");
             return;
@@ -347,6 +380,8 @@ void effectuerPaiement() {
     int id_location;
     printf("Entrez l'identifiant de la location : ");
     scanf("%d", &id_location);
+
+    // Recherche de la location dans l'historique
     struct location* locationActuelle = historiqueLocations;
 
     while (locationActuelle != NULL) {
@@ -374,6 +409,7 @@ void afficher_tarifs() {
 
     while (voitureActuelle != NULL) {
         if (strcmp(voitureActuelle->matricule, mat) == 0) {
+            // La voiture avec la matricule spécifiée a été trouvée
               printf("Caution : %.2f\n",voitureActuelle->caution);
               printf("Tarif journalier : %.2f\n", voitureActuelle->tarif_journalier);
             return;
@@ -391,7 +427,7 @@ void modifier_tarif() {
     float caut, tar;
     printf("Donner La Matricule : ");
     fgets(mat, sizeof(mat), stdin);
-    mat[strcspn(mat, "\n")] = '\0'; 
+    mat[strcspn(mat, "\n")] = '\0'; // Supprimer le caractère de nouvelle ligne
 
     printf("Donner La Nouvelle Caution : ");
     scanf("%f", &caut);
@@ -412,6 +448,7 @@ void modifier_tarif() {
         voitureActuelle = voitureActuelle->suivante;
     }
 
+    // Si la matricule spécifiée n'est pas trouvée
     printf("La voiture avec la matricule %s n'a pas été trouvée dans le parc.\n", mat);
 };
 void afficherHistoriqueTousJours(struct location* listeLocations) {
@@ -461,6 +498,7 @@ void afficherVoituresDisponibles() {
 
     while (voitureActuelle != NULL) {
         if (strcmp(voitureActuelle->etat, "disponible") == 0) {
+            // Afficher les détails de la voiture disponible
             printf("Matricule : %s\n", voitureActuelle->matricule);
             printf("Modele : %s\n", voitureActuelle->modele);
             printf("Etat : %s\n", voitureActuelle->etat);
@@ -482,6 +520,7 @@ void afficherVoituresEnPanne() {
 
     while (voitureActuelle != NULL) {
         if (strcmp(voitureActuelle->etat, "panne") == 0) {
+            // Afficher les détails de la voiture en panne
             printf("Matricule : %s\n", voitureActuelle->matricule);
             printf("Modele : %s\n", voitureActuelle->modele);
             printf("Etat : %s\n", voitureActuelle->etat);
@@ -525,6 +564,7 @@ int nombreLocationsParVoiture(char matriculeRecherche[]) {
 
     while (locationActuelle != NULL) {
         if (strcmp(locationActuelle->voiture->matricule, matriculeRecherche) == 0) {
+            // La location concerne la voiture spécifiée
             nombreLocations++;
         }
 
@@ -640,25 +680,7 @@ void afficherMenu() {
     printf("17. Le nombre de locations effectuees par une voiture specifique\n");
     printf("0. Quitter\n");
 };
-void afficherdescription(char *matricule) {
 
-    struct voiture* voit = parcAuto;
-
-    voit = trouverVoitureParMatricule(matricule);
-
-    if (voit != NULL) {
-        printf("Description de la voiture avec le numéro de matricule %s:\n", voit->matricule);
-        printf("- Modèle: %s\n", voit->modele);
-        printf("- Kilomètres parcourus: %.2f\n", voit->kilometrage);
-        printf("- Assurance: %s\n", voit->assurance);
-        printf("- État: %s\n", voit->etat);
-        printf("- Année: %d\n", voit->annee);
-        printf("- Caution: %.2f\n", voit->caution);
-        printf("- Tarif journalier: %.2f\n", voit->tarif_journalier);
-    } else {
-        printf("Aucune voiture trouvée avec le numéro de matricule %s.\n", matricule);
-    }
-}
 void traiter_choix(int choix){
 
 
@@ -667,9 +689,7 @@ void traiter_choix(int choix){
                 louerVoiture();
                 break;
             case 2:
-                printf("Donner la matricule de votre Voiture : ");
-                scanf("%s",matricule);
-                afficherdescription(matricule);
+                afficherdescription();
                 break;
             case 3:
                 ajouterVoiture();
