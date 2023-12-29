@@ -8,6 +8,22 @@
 #define TARIFS_FILE "tarifs.txt"
 
 int idLoc=1;
+char matricule[20];
+char modele[50];
+char etat[20];
+char assurance[20];
+int kilometrage;
+int annee;
+double tarif_journalier;
+double caution;
+char date_debut[20];
+char date_fin[20];
+char cin_client[20];
+int duree;
+double montant;
+int paiement_effectue;
+float acompte;
+char raison[100];
 // Fonction pour lire une date depuis l'entrée
 void lireDate(char date[]) {
     while (1) {
@@ -81,7 +97,7 @@ struct voiture* creerVoiture(char matricule[], char modele[],char etat[],   char
     nouvelleVoiture->suivante = NULL;
     return nouvelleVoiture;
 }
-struct location* creerLocation(struct voiture* voiture, char date_debut[],char date_fin[], char cin_client[], int duree, float montant,int paiement_effectue, double acompte) {
+struct location* creerLocation(struct voiture* voiture, char date_debut[],char date_fin[], char cin_client[], int duree, float montant,int paiement_effectue, float acompte) {
     struct location* nouvelleLocation = (struct location*)malloc(sizeof(struct location));
     nouvelleLocation->id_loc = idLoc++;
     nouvelleLocation->voiture = voiture;
@@ -181,18 +197,11 @@ void modifierDescriptionEtat() {
 int calculerDuree(char date_debut[], char date_fin[]) {
     int jours_debut, mois_debut, annee_debut;
     int jours_fin, mois_fin, annee_fin;
-
-    // Extraire les jours, mois et années de la date de début
     sscanf(date_debut, "%d/%d/%d", &jours_debut, &mois_debut, &annee_debut);
-
-    // Extraire les jours, mois et années de la date de fin
     sscanf(date_fin, "%d/%d/%d", &jours_fin, &mois_fin, &annee_fin);
-
-    // Convertir les deux dates en jours depuis une référence commune (par exemple, 1 janvier 1)
     int jours_total_debut = jours_debut + mois_debut * 30 + annee_debut * 365;
     int jours_total_fin = jours_fin + mois_fin * 30 + annee_fin * 365;
 
-    // Calculer la différence en jours
     int duree = jours_total_fin - jours_total_debut;
 
     return duree;
@@ -204,7 +213,6 @@ int estVoitureDisponible(struct voiture* voiture, char date_debut[], char date_f
         // Vérifier s'il y a un chevauchement de dates avec la location actuelle
         if (strcmp(locationActuelle->voiture->matricule, voiture->matricule) == 0) {
             if ((strcmp(locationActuelle->date_fin, date_debut) >= 0) || (strcmp(locationActuelle->date_debut, date_fin) <= 0)) {
-                // La voiture est déjà louée pour une partie de la période spécifiée
                 return 0; // Non disponible
             }
         }
@@ -221,8 +229,6 @@ void ajouterClientBlacklist(char cin_client[], char raison[]) {
     strcpy(nouveauClientBlacklist->cin_client, cin_client);
     strcpy(nouveauClientBlacklist->raison, raison);
     nouveauClientBlacklist->suivant = NULL;
-
-    // Ajouter le client blacklisté à la liste
     if (blacklistClients == NULL) {
         blacklistClients = nouveauClientBlacklist;
     } else {
@@ -259,24 +265,22 @@ void afficherBlackliste() {
         blacklistClientsActuelle = blacklistClientsActuelle->suivant;
     }
 }
-
-// Fonction pour louer une voiture
+//Fonction pour louer une voiture
 void louerVoiture() {
     char mat[20];
     char datedeb[20];
     char datefin[20];
     char cin_client[20];
     int duree;
-    double acompte;
+    float acompte;
 
     // Demander à l'utilisateur le modèle de la voiture à louer
-    printf("Entrez La matricule de la voiture a louer : ");
+    printf("Entrez la matricule de la voiture à louer : ");
     scanf("%s", mat);
 
     struct voiture* voitureActuelle = parcAuto;
     while (voitureActuelle != NULL) {
-        if (strcmp(voitureActuelle->matricule,mat) == 0) {
-
+        if (strcmp(voitureActuelle->matricule, mat) == 0) {
             printf("Entrez le CIN du client : ");
             scanf("%s", cin_client);
 
@@ -287,24 +291,28 @@ void louerVoiture() {
 
             printf("Entrez la date de début de la location (JJ/MM/AAAA) : ");
             scanf("%s", datedeb);
+
             printf("Entrez la date de fin de la location (JJ/MM/AAAA) : ");
-            scanf("%s", datefin);//should I add a function to calculate date fin ??????????????
-            if (estVoitureDisponible(voitureActuelle,datedeb,datefin)){
-                    int duree=calculerDuree(datedeb,datefin);
+            scanf("%s", datefin);
+
+            // Calculate the duration of the rental
+            duree = calculerDuree(datedeb, datefin);
+
+            // Calculate the total amount of the rental
+            float montant = duree * voitureActuelle->tarif_journalier;
+            printf("Votre montant : %f \n", montant);
+
             // Demander l'acompte à l'utilisateur
             printf("Entrez le montant de l'acompte : ");
-            scanf("%lf", &acompte);
+            scanf("%f", &acompte);
 
-            // Calculer le montant total de la location
-            double montant = (duree * voitureActuelle->tarif_journalier);
-
-            // Vérifier si l'acompte est suffisant
-            if (acompte <=montant / 3) {
-                printf("L'acompte doit être au moins la moitié du montant total de la location.\n");
+            if (acompte < (montant / 3)) {
+                printf("L'acompte doit être au moins le tiers du montant total de la location.\n");
                 return;
             }
 
-            struct Location* nouvelleLocation = creerLocation(voitureActuelle, datedeb,datefin, cin_client, duree, montant,paiement_effectue, acompte);
+            struct location* nouvelleLocation = creerLocation(voitureActuelle, datedeb, datefin, cin_client, duree, montant, 0, acompte);
+
             if (historiqueLocations == NULL) {
                 historiqueLocations = nouvelleLocation;
             } else {
@@ -315,20 +323,17 @@ void louerVoiture() {
                 derniereLocation->suivante = nouvelleLocation;
             }
 
-            // Mettre à jour l'état de la voiture (par exemple, "louée")
             strcpy(voitureActuelle->etat, "louee");
 
-            printf("La voiture a ete louee avec succes.\n");
+            printf("La voiture a été louée avec succès.\n");
             return;
         }
         voitureActuelle = voitureActuelle->suivante;
     }
-            }
-
 
     // Si la voiture n'est pas trouvée dans le parc
     printf("La voiture n'est pas disponible dans le parc.\n");
-};
+}
 void retourVoitureReclamation() {
     char mat[10];
     printf("Entrez la matricule de la voiture a retourner suite a une reclamation : ");
@@ -549,22 +554,7 @@ int nombreLocationsParVoiture(char matriculeRecherche[]) {
 
 
 void sauvegarderInformationsDansFichier() {
-    char matricule[20];
-char modele[50];
-char etat[20];
-char assurance[20];
-int kilometrage;
-int annee;
-double tarif_journalier;
-double caution;
-char date_debut[20];
-char date_fin[20];
-char cin_client[20];
-int duree;
-double montant;
-int paiement_effectue;
-double acompte;
-char raison[100];
+
     FILE* fichierParc = fopen("parc_auto.txt", "w");
     FILE* fichierLocations = fopen("historique_locations.txt", "w");
     FILE* fichierBlacklist = fopen("blacklist_clients.txt", "w");
@@ -780,7 +770,6 @@ int main(){
     sauvegarderInformationsDansFichier();
     return 0;
 }
-
 
 
 
