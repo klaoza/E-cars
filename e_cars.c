@@ -20,7 +20,6 @@ char date_debut[20];
 char date_fin[20];
 char cin_client[20];
 int duree;
-double montant;
 int paiement_effectue;
 float acompte;
 char raison[100];
