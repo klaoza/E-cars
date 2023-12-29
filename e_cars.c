@@ -2,7 +2,29 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Fonction pour lire une date depuis l'entrÈe standard avec gestion des erreurs
+#define VOITURES_PARC_FILE "parc_auto.txt"
+#define LOCATIONS_FILE "historique_locations.txt"
+#define BLACKLIST_FILE "blacklist_clientstxt"
+#define TARIFS_FILE "tarifs.txt"
+
+char matricule[20];
+char modele[50];
+char etat[20];
+char assurance[20];
+int kilometrage;
+int annee;
+double tarif_journalier;
+double caution;
+int idLoc = 1;
+char date_debut[20];
+char date_fin[20];
+char cin_client[20];
+int duree;
+double montant;
+int paiement_effectue;
+double acompte;
+char raison[100];
+// Fonction pour lire une date depuis l'entr√©e
 void lireDate(char date[]) {
     while (1) {
         if (scanf("%10s", date) == 1) {
@@ -30,9 +52,7 @@ struct voiture {
   struct voiture* suivante;
 
 };
-// DÈclaration de la liste chaÓnÈe pour les voitures
-struct voiture* parcAuto = NULL;
-// Structure pour reprÈsenter une location
+
 struct location {
     struct voiture* voiture;
     int id_loc;
@@ -45,34 +65,25 @@ struct location {
     double acompte;
     struct location* suivante;
 };
-
-// Structure pour reprÈsenter un client blacklistÈ
 struct Blacklist {
     char cin_client[20];
     char raison[255];
     struct Blacklist* suivant;
 };
 
-
-char matricule[20];
-char modele[50];
-char etat[20];
-char assurance[20];
-int kilometrage;
-int annee;
-double tarif_journalier;
-double caution;
-int id_loc;
-char date_debut[20];
-char date_fin[20];
-char cin_client[20];
-int duree;
-double montant;
-int paiement_effectue;
-double acompte;
-char raison[100];
-
-// Fonction pour crÈer une nouvelle voiture
+// D√©claration de la liste cha√Æn√©e pour les voitures
+struct voiture* parcAuto = NULL;
+// D√©claration de la liste cha√Æn√©e pour l'historique des locations
+struct location* historiqueLocations = NULL;
+// D√©claration de la liste cha√Æn√©e pour la blacklist des clients
+struct Blacklist* blacklistClients = NULL;
+struct CarRentalSystem {
+    struct voiture* parcAuto;
+    struct location* historiqueLocations;
+    struct Blacklist* blacklistClients;
+    int idLoc;
+};
+// Fonction pour cr√©er une nouvelle voiture
 struct voiture* creerVoiture(char matricule[], char modele[],char etat[],   char ass[], int km, int annee, float tarif_journalier, float caution) {
     struct voiture* nouvelleVoiture = (struct voiture*)malloc(sizeof(struct voiture));
     strcpy(nouvelleVoiture->modele, modele);
@@ -86,109 +97,6 @@ struct voiture* creerVoiture(char matricule[], char modele[],char etat[],   char
     nouvelleVoiture->suivante = NULL;
     return nouvelleVoiture;
 }
-
-// DÈclaration de la liste chaÓnÈe pour l'historique des locations
-struct location* historiqueLocations = NULL;
-
-// DÈclaration de la liste chaÓnÈe pour la blacklist des clients
-struct Blacklist* blacklistClients = NULL;
-
-void modifier_tarif() {
-    char mat[20];
-    float caut, tar;
-    printf("Donner La Matricule : ");
-    fgets(mat, sizeof(mat), stdin);
-    mat[strcspn(mat, "\n")] = '\0'; // Supprimer le caractËre de nouvelle ligne
-
-    printf("Donner La Nouvelle Caution : ");
-    scanf("%f", &caut);
-
-    printf("Donner le Nouveau Tarif Journalier : ");
-    scanf("%f", &tar);
-
-    struct voiture* voitureActuelle = parcAuto;
-
-    while (voitureActuelle != NULL) {
-        if (strcmp(voitureActuelle->matricule, mat) == 0) {
-            // La voiture avec la matricule spÈcifiÈe a ÈtÈ trouvÈe
-            voitureActuelle->caution = caut;
-            voitureActuelle->tarif_journalier = tar;
-            return;
-        }
-
-        voitureActuelle = voitureActuelle->suivante;
-    }
-
-    // Si la matricule spÈcifiÈe n'est pas trouvÈe
-    printf("La voiture avec la matricule %s n'a pas ÈtÈ trouvÈe dans le parc.\n", mat);
-}
-
-void ajouterVoiture() {
-    char matricule[20], modele[20], marque[20], etat[20]="disponible", assurance[50];
-    int kilometrage, annee;
-    float caution, tarif_journalier;
-
-    // Saisir les informations de la nouvelle voiture
-    printf("Entrez la matricule de la voiture : ");
-    scanf("%s", matricule);
-    printf("Entrez le modele de la voiture : ");
-    scanf("%s", modele);
-    printf("Entrez la marque de la voiture : ");
-    scanf("%s", marque);
-    printf("Entrez l'assurance de la voiture : ");
-    scanf("%s", assurance);
-    printf("Entrez le kilometrage de la voiture : ");
-    scanf("%d", &kilometrage);
-    printf("Entrez l'annee de la voiture : ");
-    scanf("%d", &annee);
-    printf("Entrez la caution de la voiture : ");
-    scanf("%f", &caution);
-    printf("Entrez le tarif journalier de la voiture : ");
-    scanf("%f", &tarif_journalier);
-
-    // CrÈer une nouvelle voiture et l'ajouter au parc
-    struct voiture* nouvelleVoiture = creerVoiture(matricule, modele, etat, assurance, kilometrage, annee, tarif_journalier, caution);
-    ajouterVoitureAuParc(nouvelleVoiture);
-}
-
-// Fonction pour ajouter une voiture au parc
-void ajouterVoitureAuParc(struct voiture* nouvelleVoiture) {
-    // Ajouter la nouvelle voiture au dÈbut de la liste
-    nouvelleVoiture->suivante = parcAuto;
-    parcAuto = nouvelleVoiture;
-
-    printf("Voiture ajoutee avec succes au parc.\n");
-}
-
-void afficher_tarifs() {
-    char mat[20];
-    printf("Donner La Matricule : ");
-    scanf("%s",mat);
-    struct voiture* voitureActuelle = parcAuto;
-
-    while (voitureActuelle != NULL) {
-        if (strcmp(voitureActuelle->matricule, mat) == 0) {
-            // La voiture avec la matricule spÈcifiÈe a ÈtÈ trouvÈe
-              printf("Caution : %.2f\n",voitureActuelle->caution);
-              printf("Tarif journalier : %.2f\n", voitureActuelle->tarif_journalier);
-            return;
-        }
-
-        voitureActuelle = voitureActuelle->suivante;
-    }
-
-    printf("La voiture avec la matricule %s n'a pas ete trouvee dans le parc.\n", mat);
-
-
-}
-
-
-
-static int idLoc = 1;
-// Fonction pour ajouter une nouvelle voiture au parc
-
-
-// Fonction pour crÈer une nouvelle location
 struct location* creerLocation(struct voiture* voiture, char date_debut[],char date_fin[], char cin_client[], int duree, float montant,int paiement_effectue, double acompte) {
     struct location* nouvelleLocation = (struct location*)malloc(sizeof(struct location));
     nouvelleLocation->id_loc = idLoc++;
@@ -205,34 +113,114 @@ struct location* creerLocation(struct voiture* voiture, char date_debut[],char d
     nouvelleLocation->suivante = NULL;
     return nouvelleLocation;
 }
+// Fonction pour ajouter une voiture au parc
+void ajouterVoitureAuParc(struct voiture* nouvelleVoiture) {
+    nouvelleVoiture->suivante = parcAuto;
+    parcAuto = nouvelleVoiture;
+
+    printf("Voiture ajoutee avec succes au parc.\n");
+}
+void ajouterVoiture() {
+    char matricule[20], modele[20], marque[20], etat[20]="disponible", assurance[50];
+    int kilometrage, annee;
+    float caution, tarif_journalier;
+    printf("Entrez la matricule de la voiture : ");
+    scanf("%s", matricule);
+    printf("Entrez le modele de la voiture : ");
+    scanf("%s", modele);
+    printf("Entrez la marque de la voiture : ");
+    scanf("%s", marque);
+    printf("Entrez l'assurance de la voiture : ");
+    scanf("%s", assurance);
+    printf("Entrez le kilometrage de la voiture : ");
+    scanf("%d", &kilometrage);
+    printf("Entrez l'annee de la voiture : ");
+    scanf("%d", &annee);
+    printf("Entrez la caution de la voiture : ");
+    scanf("%f", &caution);
+    printf("Entrez le tarif journalier de la voiture : ");
+    scanf("%f", &tarif_journalier);
+    struct voiture* nouvelleVoiture = creerVoiture(matricule, modele, etat, assurance, kilometrage, annee, tarif_journalier, caution);
+    ajouterVoitureAuParc(nouvelleVoiture);
+};
+void supprimerVoiturePanne() {
+    struct voiture* voitureActuelle = parcAuto;
+    struct voiture* voiturePrecedente = NULL;
+
+    while (voitureActuelle != NULL) {
+        if (strcmp(voitureActuelle->etat, "panne") == 0) {
+            // La voiture est en panne, la supprimer du parc
+            if (voiturePrecedente == NULL) {
+                // La voiture en panne est la premi√®re dans la liste
+                parcAuto = voitureActuelle->suivante;
+                free(voitureActuelle);
+                printf("Voiture en panne supprimee avec succes.\n");
+                return;
+            } else {
+                voiturePrecedente->suivante = voitureActuelle->suivante;
+                free(voitureActuelle);
+                printf("Voiture en panne supprimee avec succes.\n");
+                return;
+            }
+        }
+
+        voiturePrecedente = voitureActuelle;
+        voitureActuelle = voitureActuelle->suivante;
+    }
+
+    printf("Aucune voiture en panne trouvee dans le parc.\n");
+};
+void modifierDescriptionEtat() {
+    char mat[10];
+    printf("Entrez la matricule de la voiture a modifier : ");
+    scanf("%s", mat);
+
+    struct voiture* voitureActuelle = parcAuto;
+
+    while (voitureActuelle != NULL) {
+        if (strcmp(voitureActuelle->matricule, mat) == 0) {
+            // La voiture est trouv√©e, modifier la description et l'√©tat
+            printf("Nouvelle description : ");
+            scanf("%s", voitureActuelle->matricule);
+            printf("Nouvel etat (disponible, louee, panne) : ");
+            scanf("%s", voitureActuelle->etat);
+            printf("Description et etat modifies avec succes.\n");
+            return;
+        }
+
+        voitureActuelle = voitureActuelle->suivante;
+    }
+
+    printf("La voiture n'a pas ete trouvee dans le parc.\n");
+
+};
 int calculerDuree(char date_debut[], char date_fin[]) {
     int jours_debut, mois_debut, annee_debut;
     int jours_fin, mois_fin, annee_fin;
 
-    // Extraire les jours, mois et annÈes de la date de dÈbut
+    // Extraire les jours, mois et ann√©es de la date de d√©but
     sscanf(date_debut, "%d/%d/%d", &jours_debut, &mois_debut, &annee_debut);
 
-    // Extraire les jours, mois et annÈes de la date de fin
+    // Extraire les jours, mois et ann√©es de la date de fin
     sscanf(date_fin, "%d/%d/%d", &jours_fin, &mois_fin, &annee_fin);
 
-    // Convertir les deux dates en jours depuis une rÈfÈrence commune (par exemple, 1 janvier 1)
+    // Convertir les deux dates en jours depuis une r√©f√©rence commune (par exemple, 1 janvier 1)
     int jours_total_debut = jours_debut + mois_debut * 30 + annee_debut * 365;
     int jours_total_fin = jours_fin + mois_fin * 30 + annee_fin * 365;
 
-    // Calculer la diffÈrence en jours
+    // Calculer la diff√©rence en jours
     int duree = jours_total_fin - jours_total_debut;
 
     return duree;
 }
 int estVoitureDisponible(struct voiture* voiture, char date_debut[], char date_fin[]) {
-    // Parcourir la liste des locations pour cette voiture
     struct location* locationActuelle = historiqueLocations;
 
     while (locationActuelle != NULL) {
-        // VÈrifier s'il y a un chevauchement de dates avec la location actuelle
+        // V√©rifier s'il y a un chevauchement de dates avec la location actuelle
         if (strcmp(locationActuelle->voiture->matricule, voiture->matricule) == 0) {
             if ((strcmp(locationActuelle->date_fin, date_debut) >= 0) || (strcmp(locationActuelle->date_debut, date_fin) <= 0)) {
-                // La voiture est dÈj‡ louÈe pour une partie de la pÈriode spÈcifiÈe
+                // La voiture est d√©j√† lou√©e pour une partie de la p√©riode sp√©cifi√©e
                 return 0; // Non disponible
             }
         }
@@ -240,18 +228,17 @@ int estVoitureDisponible(struct voiture* voiture, char date_debut[], char date_f
         locationActuelle = locationActuelle->suivante;
     }
 
-    // La voiture est disponible pour la pÈriode spÈcifiÈe
     return 1; // Disponible
 }
 
-// Fonction pour ajouter un client ‡ la blacklist
+// Fonction pour ajouter un client √† la blacklist
 void ajouterClientBlacklist(char cin_client[], char raison[]) {
     struct Blacklist* nouveauClientBlacklist = (struct Blacklist*)malloc(sizeof(struct Blacklist));
     strcpy(nouveauClientBlacklist->cin_client, cin_client);
     strcpy(nouveauClientBlacklist->raison, raison);
     nouveauClientBlacklist->suivant = NULL;
 
-    // Ajouter le client blacklistÈ ‡ la liste
+    // Ajouter le client blacklist√© √† la liste
     if (blacklistClients == NULL) {
         blacklistClients = nouveauClientBlacklist;
     } else {
@@ -265,17 +252,17 @@ void ajouterClientBlacklist(char cin_client[], char raison[]) {
     printf("Client ajoute a la blacklist avec succes.\n");
 }
 
-// Fonction pour vÈrifier si un client est dans la blacklist
+// Fonction pour v√©rifier si un client est dans la blacklist
 int estClientBlackliste(char cin_client[]) {
     struct Blacklist* clientActuel = blacklistClients;
     while (clientActuel != NULL) {
         if (strcmp(clientActuel->cin_client, cin_client) == 0) {
-            printf("Ce client est blacklistÈ pour la raison suivante : %s\n", clientActuel->raison);
-            return 1; // Le client est blacklistÈ
+            printf("Ce client est blacklist√© pour la raison suivante : %s\n", clientActuel->raison);
+            return 1; // Le client est blacklist√©
         }
         clientActuel = clientActuel->suivant;
     }
-    return 0; // Le client n'est pas blacklistÈ
+    return 0; // Le client n'est pas blacklist√©
 }
 void afficherBlackliste() {
     struct Blacklist* blacklistClientsActuelle = blacklistClients;
@@ -298,49 +285,42 @@ void louerVoiture() {
     int duree;
     double acompte;
 
-    // Demander ‡ l'utilisateur le modËle de la voiture ‡ louer
+    // Demander √† l'utilisateur le mod√®le de la voiture √† louer
     printf("Entrez La matricule de la voiture a louer : ");
     scanf("%s", mat);
 
-    // Rechercher la voiture dans le parc
     struct voiture* voitureActuelle = parcAuto;
     while (voitureActuelle != NULL) {
         if (strcmp(voitureActuelle->matricule,mat) == 0) {
-            // La voiture a ÈtÈ trouvÈe dans le parc
 
-            // Demander le numÈro de CIN du client
             printf("Entrez le CIN du client : ");
             scanf("%s", cin_client);
 
-            // VÈrifier si le client est blacklistÈ
             if (estClientBlackliste(cin_client)) {
-                printf("Impossible de louer une voiture ‡ un client blacklistÈ.\n");
+                printf("Impossible de louer une voiture √† un client blacklist√©.\n");
                 return;
             }
 
-            // CrÈer une nouvelle location
-            printf("Entrez la date de dÈbut de la location (JJ/MM/AAAA) : ");
+            printf("Entrez la date de d√©but de la location (JJ/MM/AAAA) : ");
             scanf("%s", datedeb);
             printf("Entrez la date de fin de la location (JJ/MM/AAAA) : ");
             scanf("%s", datefin);//should I add a function to calculate date fin ??????????????
             if (estVoitureDisponible(voitureActuelle,datedeb,datefin)){
                     int duree=calculerDuree(datedeb,datefin);
-            // Demander l'acompte ‡ l'utilisateur
+            // Demander l'acompte √† l'utilisateur
             printf("Entrez le montant de l'acompte : ");
             scanf("%lf", &acompte);
 
             // Calculer le montant total de la location
             double montant = (duree * voitureActuelle->tarif_journalier);
 
-            // VÈrifier si l'acompte est suffisant
+            // V√©rifier si l'acompte est suffisant
             if (acompte <=montant / 3) {
-                printf("L'acompte doit Ítre au moins la moitiÈ du montant total de la location.\n");
+                printf("L'acompte doit √™tre au moins la moiti√© du montant total de la location.\n");
                 return;
             }
 
             struct Location* nouvelleLocation = creerLocation(voitureActuelle, datedeb,datefin, cin_client, duree, montant,paiement_effectue, acompte);
-
-            // Ajouter la location ‡ l'historique
             if (historiqueLocations == NULL) {
                 historiqueLocations = nouvelleLocation;
             } else {
@@ -351,7 +331,7 @@ void louerVoiture() {
                 derniereLocation->suivante = nouvelleLocation;
             }
 
-            // Mettre ‡ jour l'Ètat de la voiture (par exemple, "louÈe")
+            // Mettre √† jour l'√©tat de la voiture (par exemple, "lou√©e")
             strcpy(voitureActuelle->etat, "louee");
 
             printf("La voiture a ete louee avec succes.\n");
@@ -362,147 +342,9 @@ void louerVoiture() {
             }
 
 
-    // Si la voiture n'est pas trouvÈe dans le parc
+    // Si la voiture n'est pas trouv√©e dans le parc
     printf("La voiture n'est pas disponible dans le parc.\n");
-}
-
-
-// Example of a structure to encapsulate related variables
-struct CarRentalSystem {
-    struct voiture* parcAuto;
-    struct location* historiqueLocations;
-    struct Blacklist* blacklistClients;
-    int idLoc;
 };
-
-
-
-void afficherDescription() {
-    struct voiture* voitureActuelle = parcAuto;
-
-    while (voitureActuelle != NULL) {
-        printf("Matricule : %s\n", voitureActuelle->matricule);
-        printf("Modele : %s\n", voitureActuelle->modele);
-        printf("Etat : %s\n", voitureActuelle->etat);
-        printf("Assurance : %s\n",voitureActuelle->assurance);
-        printf("Kilometrage : %d\n",voitureActuelle->kilometrage);
-        printf("Annee : %d\n",voitureActuelle->annee);
-        printf("Tarif journalier : %.2f\n", voitureActuelle->tarif_journalier);
-        printf("Caution : %.2f\n", voitureActuelle->caution);
-        printf("---------------------------\n");
-
-        voitureActuelle = voitureActuelle->suivante;
-    }
-}
-void supprimerVoiturePanne() {
-    struct voiture* voitureActuelle = parcAuto;
-    struct voiture* voiturePrecedente = NULL;
-
-    while (voitureActuelle != NULL) {
-        if (strcmp(voitureActuelle->etat, "panne") == 0) {
-            // La voiture est en panne, la supprimer du parc
-            if (voiturePrecedente == NULL) {
-                // La voiture en panne est la premiËre dans la liste
-                parcAuto = voitureActuelle->suivante;
-                free(voitureActuelle);
-                printf("Voiture en panne supprimee avec succes.\n");
-                return;
-            } else {
-                voiturePrecedente->suivante = voitureActuelle->suivante;
-                free(voitureActuelle);
-                printf("Voiture en panne supprimee avec succes.\n");
-                return;
-            }
-        }
-
-        voiturePrecedente = voitureActuelle;
-        voitureActuelle = voitureActuelle->suivante;
-    }
-
-    printf("Aucune voiture en panne trouvee dans le parc.\n");
-}
-void modifierDescriptionEtat() {
-    char mat[10];
-    printf("Entrez la matricule de la voiture a modifier : ");
-    scanf("%s", mat);
-
-    struct voiture* voitureActuelle = parcAuto;
-
-    while (voitureActuelle != NULL) {
-        if (strcmp(voitureActuelle->matricule, mat) == 0) {
-            // La voiture est trouvÈe, modifier la description et l'Ètat
-            printf("Nouvelle description : ");
-            scanf("%s", voitureActuelle->matricule);
-            printf("Nouvel etat (disponible, louee, panne) : ");
-            scanf("%s", voitureActuelle->etat);
-            printf("Description et etat modifies avec succes.\n");
-            return;
-        }
-
-        voitureActuelle = voitureActuelle->suivante;
-    }
-
-    printf("La voiture n'a pas ete trouvee dans le parc.\n");
-
-}
-
-void afficherHistoriqueTousMois(struct location* listeLocations) {
-    // Boucler sur tous les mois de l'annÈe
-    for (int mois = 1; mois <= 12; mois++) {
-        printf("Historique des locations pour le mois %d :\n", mois);
-
-        // Parcourir la liste des locations
-        struct location* locationActuelle = listeLocations;
-        while (locationActuelle != NULL) {
-            // Extraire le mois de la date de dÈbut
-            int moisLocation;
-            sscanf(locationActuelle->date_debut, "%*d/%d/%*d", &moisLocation);
-
-            // VÈrifier si la location a eu lieu pendant le mois spÈcifiÈ
-            if (moisLocation == mois) {
-                // Afficher les informations de la location
-                printf("Identifiant : %d\n", locationActuelle->id_loc);
-                printf("Date de dÈbut : %s\n", locationActuelle->date_debut);
-                printf("Date de fin : %s\n", locationActuelle->date_fin);
-                printf("CIN du client : %s\n", locationActuelle->cin_client);
-                printf("DurÈe : %d jours\n", locationActuelle->duree);
-                printf("Montant : %.2f\n", locationActuelle->montant);
-                printf("Paiement effectuÈ : %d\n", locationActuelle->paiement_effectue);
-                printf("Acompte : %.2f\n", locationActuelle->acompte);
-                printf("-----------------------------\n");
-            }
-
-            // Passer ‡ la location suivante
-            locationActuelle = locationActuelle->suivante;
-        }
-
-        // Passer au mois suivant
-        printf("\n");
-    }
-}
-void afficherHistoriqueTousJours(struct location* listeLocations) {
-    // Parcourir la liste des locations
-    struct location* locationActuelle = listeLocations;
-    while (locationActuelle != NULL) {
-        printf("Historique des locations pour le jour %s :\n", locationActuelle->date_debut);
-
-        // Afficher les informations de la location
-        printf("Identifiant : %d\n", locationActuelle->id_loc);
-        printf("Date de dÈbut : %s\n", locationActuelle->date_debut);
-        printf("Date de fin : %s\n", locationActuelle->date_fin);
-        printf("CIN du client : %s\n", locationActuelle->cin_client);
-        printf("DurÈe : %d jours\n", locationActuelle->duree);
-        printf("Montant : %.2f\n", locationActuelle->montant);
-        printf("Paiement effectuÈ : %d\n", locationActuelle->paiement_effectue);
-        printf("Acompte : %.2f\n", locationActuelle->acompte);
-        printf("-----------------------------\n");
-
-        // Passer ‡ la location suivante
-        locationActuelle = locationActuelle->suivante;
-    }
-}
-
-
 void retourVoitureReclamation() {
     char mat[10];
     printf("Entrez la matricule de la voiture a retourner suite a une reclamation : ");
@@ -512,7 +354,7 @@ void retourVoitureReclamation() {
 
     while (voitureActuelle != NULL) {
         if (strcmp(voitureActuelle->matricule, mat) == 0) {
-            // La voiture est trouvÈe, mettre ‡ jour son Ètat
+            // La voiture est trouv√©e, mettre √† jour son √©tat
             strcpy(voitureActuelle->etat, "disponible");
             printf("La voiture a ete retournee avec succes suite a une reclamation.\n");
             return;
@@ -522,8 +364,7 @@ void retourVoitureReclamation() {
     }
 
     printf("La voiture n'a pas ete trouvee dans le parc.\n");
-}
-// Fonction pour effectuer un paiement
+};
 void effectuerPaiement() {
     int id_location;
     printf("Entrez l'identifiant de la location : ");
@@ -537,7 +378,7 @@ void effectuerPaiement() {
             if (locationActuelle->paiement_effectue) {
                 printf("Le paiement a deja ete effectue pour cette location.\n");
             } else {
-                // Logique pour effectuer le paiement (par exemple, marquer la location comme payÈe)
+                // Logique pour effectuer le paiement (par exemple, marquer la location comme pay√©e)
                 locationActuelle->paiement_effectue = 1;
                 printf("Le paiement a ete effectue avec succes pour la location %d.\n", id_location);
             }
@@ -548,16 +389,105 @@ void effectuerPaiement() {
     }
 
     printf("Aucune location trouvee avec l'identifiant %d dans l'historique.\n", id_location);
-}
+};
+void afficher_tarifs() {
+    char mat[20];
+    printf("Donner La Matricule : ");
+    scanf("%s",mat);
+    struct voiture* voitureActuelle = parcAuto;
+
+    while (voitureActuelle != NULL) {
+        if (strcmp(voitureActuelle->matricule, mat) == 0) {
+            // La voiture avec la matricule sp√©cifi√©e a √©t√© trouv√©e
+              printf("Caution : %.2f\n",voitureActuelle->caution);
+              printf("Tarif journalier : %.2f\n", voitureActuelle->tarif_journalier);
+            return;
+        }
+
+        voitureActuelle = voitureActuelle->suivante;
+    }
+
+    printf("La voiture avec la matricule %s n'a pas ete trouvee dans le parc.\n", mat);
 
 
+};
+void modifier_tarif() {
+    char mat[20];
+    float caut, tar;
+    printf("Donner La Matricule : ");
+    fgets(mat, sizeof(mat), stdin);
+    mat[strcspn(mat, "\n")] = '\0'; // Supprimer le caract√®re de nouvelle ligne
+
+    printf("Donner La Nouvelle Caution : ");
+    scanf("%f", &caut);
+
+    printf("Donner le Nouveau Tarif Journalier : ");
+    scanf("%f", &tar);
+
+    struct voiture* voitureActuelle = parcAuto;
+
+    while (voitureActuelle != NULL) {
+        if (strcmp(voitureActuelle->matricule, mat) == 0) {
+            // La voiture avec la matricule sp√©cifi√©e a √©t√© trouv√©e
+            voitureActuelle->caution = caut;
+            voitureActuelle->tarif_journalier = tar;
+            return;
+        }
+
+        voitureActuelle = voitureActuelle->suivante;
+    }
+
+    // Si la matricule sp√©cifi√©e n'est pas trouv√©e
+    printf("La voiture avec la matricule %s n'a pas √©t√© trouv√©e dans le parc.\n", mat);
+};
+void afficherHistoriqueTousJours(struct location* listeLocations) {
+    struct location* locationActuelle = listeLocations;
+    while (locationActuelle != NULL) {
+        printf("Historique des locations pour le jour %s :\n", locationActuelle->date_debut);
+        printf("Identifiant : %d\n", locationActuelle->id_loc);
+        printf("Date de d√©but : %s\n", locationActuelle->date_debut);
+        printf("Date de fin : %s\n", locationActuelle->date_fin);
+        printf("CIN du client : %s\n", locationActuelle->cin_client);
+        printf("Dur√©e : %d jours\n", locationActuelle->duree);
+        printf("Montant : %.2f\n", locationActuelle->montant);
+        printf("Paiement effectu√© : %d\n", locationActuelle->paiement_effectue);
+        printf("Acompte : %.2f\n", locationActuelle->acompte);
+        printf("-----------------------------\n");
+        locationActuelle = locationActuelle->suivante;
+    }
+};
+void afficherHistoriqueTousMois(struct location* listeLocations) {
+    for (int mois = 1; mois <= 12; mois++) {
+        printf("Historique des locations pour le mois %d :\n", mois);
+        struct location* locationActuelle = listeLocations;
+        while (locationActuelle != NULL) {
+            int moisLocation;
+            sscanf(locationActuelle->date_debut, "%*d/%d/%*d", &moisLocation);
+            if (moisLocation == mois) {
+                printf("Identifiant : %d\n", locationActuelle->id_loc);
+                printf("Date de d√©but : %s\n", locationActuelle->date_debut);
+                printf("Date de fin : %s\n", locationActuelle->date_fin);
+                printf("CIN du client : %s\n", locationActuelle->cin_client);
+                printf("Dur√©e : %d jours\n", locationActuelle->duree);
+                printf("Montant : %.2f\n", locationActuelle->montant);
+                printf("Paiement effectu√© : %d\n", locationActuelle->paiement_effectue);
+                printf("Acompte : %.2f\n", locationActuelle->acompte);
+                printf("-----------------------------\n");
+            }
+
+            locationActuelle = locationActuelle->suivante;
+        }
+
+        printf("\n");
+    }
+};
 // Fonction pour afficher la description des voitures disponibles
 void afficherVoituresDisponibles() {
     struct voiture* voitureActuelle = parcAuto;
 
     while (voitureActuelle != NULL) {
         if (strcmp(voitureActuelle->etat, "disponible") == 0) {
-            // Afficher les dÈtails de la voiture disponible
+            // Afficher les d√©tails de la voiture disponible
             printf("Matricule : %s\n", voitureActuelle->matricule);
             printf("Modele : %s\n", voitureActuelle->modele);
             printf("Etat : %s\n", voitureActuelle->etat);
@@ -579,7 +509,7 @@ void afficherVoituresEnPanne() {
 
     while (voitureActuelle != NULL) {
         if (strcmp(voitureActuelle->etat, "panne") == 0) {
-            // Afficher les dÈtails de la voiture en panne
+            // Afficher les d√©tails de la voiture en panne
             printf("Matricule : %s\n", voitureActuelle->matricule);
             printf("Modele : %s\n", voitureActuelle->modele);
             printf("Etat : %s\n", voitureActuelle->etat);
@@ -595,13 +525,13 @@ void afficherVoituresEnPanne() {
     }
 }
 
-// Fonction pour afficher les voitures disponibles d'un modËle spÈcifique
+// Fonction pour afficher les voitures disponibles d'un mod√®le sp√©cifique
 void afficherVoituresParModele(char modeleRecherche[]) {
     struct voiture* voitureActuelle = parcAuto;
 
     while (voitureActuelle != NULL) {
         if (strcmp(voitureActuelle->modele, modeleRecherche) == 0 && strcmp(voitureActuelle->etat, "disponible") == 0) {
-            // Afficher les dÈtails de la voiture disponible du modËle spÈcifiÈ
+            // Afficher les d√©tails de la voiture disponible du mod√®le sp√©cifi√©
             printf("Matricule : %s\n", voitureActuelle->matricule);
             printf("Modele : %s\n", voitureActuelle->modele);
             printf("Etat : %s\n", voitureActuelle->etat);
@@ -616,14 +546,14 @@ void afficherVoituresParModele(char modeleRecherche[]) {
         voitureActuelle = voitureActuelle->suivante;
     }
 }
-// Fonction pour calculer le nombre de locations effectuÈes par une voiture spÈcifique
+// Fonction pour calculer le nombre de locations effectu√©es par une voiture sp√©cifique
 int nombreLocationsParVoiture(char matriculeRecherche[]) {
     int nombreLocations = 0;
     struct location* locationActuelle = historiqueLocations;
 
     while (locationActuelle != NULL) {
         if (strcmp(locationActuelle->voiture->matricule, matriculeRecherche) == 0) {
-            // La location concerne la voiture spÈcifiÈe
+            // La location concerne la voiture sp√©cifi√©e
             nombreLocations++;
         }
 
@@ -632,10 +562,13 @@ int nombreLocationsParVoiture(char matriculeRecherche[]) {
 
     return nombreLocations;
 }
+
+
 void sauvegarderInformationsDansFichier() {
-    FILE* fichierParc = fopen("parc_auto.txt", "w");
-    FILE* fichierLocations = fopen("historique_locations.txt", "w");
-    FILE* fichierBlacklist = fopen("blacklist_clients.txt", "w");
+FILE* fichierParc = fopen(VOITURES_PARC_FILE, "w");
+FILE* fichierLocations = fopen(LOCATIONS_FILE, "w");
+FILE* fichierBlacklist = fopen(BLACKLIST_FILE, "w");
+
 
     if (fichierParc == NULL || fichierLocations == NULL || fichierBlacklist == NULL) {
         perror("Erreur lors de l'ouverture des fichiers de sauvegarde");
@@ -667,7 +600,20 @@ void sauvegarderInformationsDansFichier() {
     fclose(fichierParc);
     fclose(fichierLocations);
     fclose(fichierBlacklist);
+};
+struct voiture* trouverVoitureParMatricule(char* matricule) {
+    struct voiture* voitureActuelle = system;
+
+    while (voitureActuelle != NULL) {
+        if (strcmp(voitureActuelle->matricule, matricule) == 0) {
+            return voitureActuelle;
+        }
+        voitureActuelle = voitureActuelle->suivante;
+    }
+
+    return NULL;
 }
+
 
 void chargerInformationsDepuisFichier() {
     FILE* fichierParc = fopen("parc_auto.txt", "r");
@@ -684,21 +630,24 @@ void chargerInformationsDepuisFichier() {
         ajouterVoitureAuParc(nouvelleVoiture);
     }
 
-    while (fscanf(fichierLocations, "%d %s %s %s %d %lf %d %lf", &id_loc, date_debut, date_fin, cin_client, &duree, &montant, &paiement_effectue, &acompte) != EOF) {
+    while (fscanf(fichierLocations, "%d %s %s %s %d %lf %d %lf", &idLoc, date_debut, date_fin, cin_client, &duree, &montant, &paiement_effectue, &acompte) != EOF) {
         struct voiture* voitureLocation = trouverVoitureParMatricule(matricule);
         struct location* nouvelleLocation = creerLocation(voitureLocation, date_debut, date_fin, cin_client, duree, montant, paiement_effectue, acompte);
-        ajouterLocationAListe(nouvelleLocation);
+        struct location* derniereLocation = historiqueLocations;
+                while (derniereLocation->suivante != NULL) {
+                    derniereLocation = derniereLocation->suivante;
+                }
+                derniereLocation->suivante = nouvelleLocation;
     }
 
     while (fscanf(fichierBlacklist, "%s %s", cin_client, raison) != EOF) {
-        ajouterClientAListeNoire(cin_client, raison);
+        ajouterClientBlacklist(cin_client, raison);
     }
 
     fclose(fichierParc);
     fclose(fichierLocations);
     fclose(fichierBlacklist);
-}
-
+};
 void afficherMenu() {
     printf("____Menu____\n");
     printf("1. Louer une voiture\n");
@@ -708,7 +657,7 @@ void afficherMenu() {
     printf("5. Modifier la description ou l'etat d'une voiture\n");
     printf("6. Afficher l'historique des locations Jour par Jour\n");
     printf("7. Afficher l'historique des locations mois par mois\n");
-    printf("8. Retourner une voiture suite ‡ une reclamation\n");
+    printf("8. Retourner une voiture suite √† une reclamation\n");
     printf("9. Effectuer un paiement\n");
     printf("10. Afficher Tarifs\n");
     printf("11. Modifier Tarifs\n");
@@ -717,81 +666,107 @@ void afficherMenu() {
     printf("14. Afficher les Voitures Disponibles\n");
     printf("15. Afficher les Voitures en Panne\n");
     printf("16. Recherche des voitures Par modele\n");
-    printf("18. Le nombre de locations effectuees par une voiture specifique\n");
+    printf("17. Le nombre de locations effectuees par une voiture specifique\n");
     printf("0. Quitter\n");
+};
+void afficherdescription(char *matricule) {
+
+    struct voiture* voit = system;
+
+    voit = trouverVoitureParMatricule(matricule);
+
+    if (voit != NULL) {
+        printf("Description de la voiture avec le num√©ro de matricule %s:\n", voit->matricule);
+        printf("- Mod√®le: %s\n", voit->modele);
+        printf("- Kilom√®tres parcourus: %.2f\n", voit->kilometrage);
+        printf("- Assurance: %s\n", voit->assurance);
+        printf("- √âtat: %s\n", voit->etat);
+        printf("- Ann√©e: %d\n", voit->annee);
+        printf("- Caution: %.2f\n", voit->caution);
+        printf("- Tarif journalier: %.2f\n", voit->tarif_journalier);
+    } else {
+        printf("Aucune voiture trouv√©e avec le num√©ro de matricule %s.\n", matricule);
+    }
 }
+void traiter_choix(int choix){
+
+
+        switch (choix) {
+            case 1:
+                louerVoiture();
+                break;
+            case 2:
+                printf("Donner la matricule de votre Voiture : ");
+                scanf("%s",matricule);
+                afficherdescription(matricule);
+                break;
+            case 3:
+                ajouterVoiture();
+                break;
+            case 4:
+                supprimerVoiturePanne();
+                break;
+            case 5:
+                modifierDescriptionEtat();
+                break;
+            case 6:
+                afficherHistoriqueTousJours(historiqueLocations);
+                break;
+            case 7:
+                afficherHistoriqueTousMois(historiqueLocations);
+            case 8:
+                retourVoitureReclamation();
+                break;
+            case 9:
+                effectuerPaiement();
+                break;
+            case 10:
+                afficher_tarifs();
+                break;
+            case 11:
+                modifier_tarif();
+                break;
+            case 12:
+                {char id;
+                char ch[20];
+                printf("Donner le num√©ro de CIN du client : \n");
+                scanf("%lf",&id);
+                printf("Raison (<=255 mots) : \n");
+                scanf("%s",ch);
+                ajouterClientBlacklist(id,ch);
+                break;}
+            case 13:
+                afficherBlackliste();
+                break;
+            case 14:
+                afficherVoituresDisponibles();
+                break;
+            case 15:
+                afficherVoituresEnPanne();
+                break;
+            case 16:
+                {char modeleRecherche[20];
+                printf("Entrez le mod√®le de voiture √† rechercher : ");
+                scanf("%s", modeleRecherche);
+                afficherVoituresParModele(modeleRecherche);
+                break;}
+            case 17:
+                {char matriculeRecherche[20];
+                printf("Entrez le matricule de voiture √† rechercher : ");
+                scanf("%s", matriculeRecherche);
+                int nombre = nombreLocationsParVoiture(matriculeRecherche);
+                printf("Nombre de locations pour la voiture %s : %d\n", matriculeRecherche, nombre);
+                break;}
 
 
 
+        }
 
-
-void traiter_choix(int choix) {
-†   †switch (choix) {
-††††case 1:
-††††††louerVoiture();
-††††††break;
-††††case 2:
-††††††afficherDescription();
-††††††break;
-††††case 3:
-††††††ajouterVoiture();
-††††††break;
-††††case 4:
-††††††supprimerVoiturePanne();
-††††††break;
-††††case 5:
-††††††modifierDescriptionEtat();
-††††††break;
-††††case 6:
-††††††afficherHistoriqueTousJours();
-††††††break;
-††††case 7:
-††††††afficherHistoriqueTousMois();
-††††††break;
-††††case 8:
-††††††retourVoitureReclamation();
-††††††break;
-††††case 9:
-††††††effectuerPaiement();
-††††††break;
-††††case 10:
-††††††afficherTarifs();
-††††††break;
-††††case 11:
-††††††modifierTarifs();
-††††††break;
-††††case 12:
-††††††ajouterClientAListeNoire();
-††††††break;
-††††case 13:
-††††††afficherBlackliste();
-††††††break;
-††††case 14:
-††††††afficherVoituresDisponibles();
-††††††break;
-††††case 15:
-††††††afficherVoituresEnPanne();
-††††††break;
-††††case 16:
-††††††afficherVoituresParModele();
-††††††break;
-††††case 18:
-††††††nombreLocationsParVoiture();
-††††††break;
-††††case 0:
-††††††printf("Au revoir !\n");
-††††††exit(0);
-††††††break;
-††††default:
-††††††printf("Choix invalide.\n");
-††††††break;
-††}
 }
-
 int main(){
     struct CarRentalSystem system = { NULL, NULL, NULL, 1 };
 
-            int choix;
+    int choix;
     chargerInformationsDepuisFichier();
     do {
         afficherMenu();
@@ -806,6 +781,7 @@ int main(){
     sauvegarderInformationsDansFichier();
     return 0;
 }
+
 
 
 
