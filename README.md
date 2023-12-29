@@ -54,7 +54,7 @@ Suivez ces instructions pour obtenir une copie du projet et le faire fonctionner
 - `E-cars.c` : Le fichier source principal contenant le code du système de location de voitures.
 - `parc_auto.txt` : Fichier contenant les informations sur la flotte de voitures.
 - `tarifs.txt` : Fichier contenant les tarifs de Location.
-- `blacklist_clients.txt` : Fichier contenant l'historique des locations.
+- `historique_locations.txt` : Fichier contenant l'historique des locations.
 - `blacklist_clients.txt` : Fichier contenant la liste noire des clients avec les raisons associées.
 
 ## Utilisation
